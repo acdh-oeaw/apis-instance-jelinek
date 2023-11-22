@@ -1,3 +1,5 @@
 **/__pycache__
 *.db
 *.lock
+.env
+apis_ontology/settings/local_settings.py
