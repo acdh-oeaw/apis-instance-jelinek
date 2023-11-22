@@ -1,4 +1,4 @@
-from apis.settings.base import *
+from apis_acdhch_default_settings.settings import *
 import re
 import dj_database_url
 import os
@@ -77,7 +77,6 @@ MIDDLEWARE = ["django.middleware.gzip.GZipMiddleware"] + MIDDLEWARE
 #MIDDLEWARE += ["django.middleware.cache.FetchFromCacheMiddleware"]
 INSTALLED_APPS.append("django.contrib.postgres")
 #INSTALLED_APPS.append("apis_highlighter")
-INSTALLED_APPS.remove("webpage")
 
 ROOT_URLCONF = "apis_ontology.urls"
 

@@ -1,4 +1,4 @@
-from apis.urls import urlpatterns
+from apis_acdhch_default_settings.urls import urlpatterns
 from rest_framework import routers
 from django.urls import include, path
 #from .jelinek_api_views import *
