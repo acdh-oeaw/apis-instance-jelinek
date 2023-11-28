@@ -1773,7 +1773,7 @@ Kapitelnummer,Position im Kapitel,work id,Datum (Korrekturhilfe),Dateipfad (Korr
 ,130,interview_0385,19.1.1994,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0385.xml
 ,140,interview_0384,13.4.1994,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0384.xml
 ,150,interview_0363,10.6.1994,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0363.xml
-,160,interview_0368,12.12.2008,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0368.xml
+,160,interview_0369,15.12.1994,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0369.xml
 ,170,interview_0391,1995,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0391.xml
 ,180,interview_0380,1995/96,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0380.xml
 ,190,interview_0394,4.4.1996,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0394.xml
@@ -1957,9 +1957,9 @@ Kapitelnummer,Position im Kapitel,work id,Datum (Korrekturhilfe),Dateipfad (Korr
 ,40,interview_0162,18.10.2000,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0162.xml
 ,50,interview_0158,28.8.2003,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0158.xml
 3.6.1.2-09,,,,
-,10,interview_0148,17.2.2007,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0148.xml
-,20,interview_0132,17.4.2007,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0132.xml
-,30,interview_0127,2007,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0127.xml
+,10,interview_0132,17.4.2007,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0132.xml
+,20,interview_0127,2007,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0127.xml
+,30,interview_0148,17.2.2008,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0148.xml
 ,40,interview_0133,16.8.2008,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0133.xml
 ,50,interview_0126,21.8.2011,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0126.xml
 ,60,interview_0039,27.2.2014,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0039.xml
@@ -2128,11 +2128,11 @@ Kapitelnummer,Position im Kapitel,work id,Datum (Korrekturhilfe),Dateipfad (Korr
 3.6.3.2-21,,,,
 ,10,interview_0250,13.11.2008,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0250.xml
 ,20,interview_0244,2009,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0244.xml
-,30,interview_0199,26.11.2015,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0199.xml
-,40,interview_0240,4.6.2009,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0240.xml
-,50,interview_0271,Kein Datum!,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0271.xml
-,60,interview_0225,2010,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0225.xml
-,70,interview_0239,20.5. 2010,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0239.xml
+,30,interview_0240,4.6.2009,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0240.xml
+,40,interview_0271,Kein Datum!,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0271.xml
+,50,interview_0225,2010,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0225.xml
+,60,interview_0239,20.5. 2010,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0239.xml
+,70,interview_0199,26.11.2015,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0199.xml
 ,80,interview_0318,2016,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0318.xml
 3.6.3.2-22,,,,
 ,10,interview_0325,2009,/korrigiert/bd1/003_Interviews/FRBR-Works/interview_0325.xml
