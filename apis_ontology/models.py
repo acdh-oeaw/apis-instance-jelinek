@@ -30,12 +30,13 @@ class E1_Crm_Entity(TempEntityClass):
     vector_related_E40_set = SearchVectorField(null=True)
     vector_related_xml_content_dump_set = SearchVectorField(null=True)
     vector_related_xml_note_set = SearchVectorField(null=True)
+    vector_search_speedup_set = SearchVectorField(null=True)
 
     def get_entity_list_filter():
         class AdHocEntityListFilter(django_filters.FilterSet):
             class Meta:
                 model = E1_Crm_Entity
-                exclude = ["vector_column_e1_set", "vector_related_f10_set", "vector_related_E40_set", "vector_related_xml_content_dump_set", "vector_related_xml_note_set"]
+                exclude = ["vector_column_e1_set", "vector_related_f10_set", "vector_related_E40_set", "vector_related_xml_content_dump_set", "vector_related_xml_note_set", "vector_search_speedup_set"]
         return AdHocEntityListFilter
     
     def save(self, *args, **kwargs):

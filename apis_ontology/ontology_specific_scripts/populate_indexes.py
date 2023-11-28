@@ -1,8 +1,8 @@
 
-from apis_ontology.models import E1_Crm_Entity, E40_Legal_Body, F10_Person, XMLNote, Xml_Content_Dump
+from apis_ontology.models import Chapter, E1_Crm_Entity, E40_Legal_Body, F10_Person, F1_Work, F31_Performance, F3_Manifestation_Product_Type, Honour, Keyword, XMLNote, Xml_Content_Dump
 from django.contrib.postgres.search import SearchVector
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Value
+from django.db.models import Value, Q
 
 
 def populate_indexes():
@@ -12,6 +12,10 @@ def populate_indexes():
     contenttype_e40 = ContentType.objects.get_for_model(model=E40_Legal_Body)
     contenttype_content_dump = ContentType.objects.get_for_model(model=Xml_Content_Dump)
     contenttype_note = ContentType.objects.get_for_model(model=XMLNote)
+    contenttype_f1 = ContentType.objects.get_for_model(model=F1_Work)
+    contenttype_f3 = ContentType.objects.get_for_model(model=F3_Manifestation_Product_Type)
+    contenttype_honour = ContentType.objects.get_for_model(model=Honour)
+    contenttype_f31 = ContentType.objects.get_for_model(model=F31_Performance)
     for ent in E1_Crm_Entity.objects_inheritance.select_subclasses("f1_work", "f3_manifestation_product_type", "honour", "f31_performance").all():
         count += 1
         print("Processing entity {} of {}".format(count, total))
@@ -62,11 +66,69 @@ def populate_indexes():
         if len(txt_xml_note) > 0:
             check = True
             ent.vector_related_xml_note_set = SearchVector(Value(txt_xml_note), config='german')
+
+        txt_search_speedup = ""
+        related_work = [ent]
+        if ent.self_contenttype in [contenttype_f31, contenttype_f3]:
+            related_work = F1_Work.objects.filter(Q(triple_set_from_subj__obj=ent) | Q(triple_set_from_subj__obj__triple_set_from_subj__obj=ent, triple_set_from_subj__obj__triple_set_from_subj__prop__name="has host")).distinct()
+        # Chapters
+        is_in_chapters = Chapter.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="is in chapter")
+        is_about_chapters = Chapter.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="is about")
+        for chapter in is_in_chapters:
+            txt_search_speedup += "isinchapter{} ".format(chapter.chapter_number)
+        for chapter in is_about_chapters:
+            txt_search_speedup += "isaboutchapter{} ".format(chapter.chapter_number)
+        # Work
+        is_about_work = E1_Crm_Entity.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="is about")
+        for work in is_about_work:
+            txt_search_speedup += "isaboutentity{} ".format(work.entity_id)
+        # Keyword
+        has_keyword = Keyword.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="has keyword")
+        for kw in has_keyword:
+            txt_search_speedup += "haskeyword{} ".format(kw.entity_id)
+
+        if len(txt_search_speedup) > 0:
+            check = True
+            ent.vector_search_speedup_set = SearchVector(Value(txt_search_speedup))
+
         if check:
             ent.save()
+
+# def populate_f3_indexes():
+#     count=0
+#     total=F3_Manifestation_Product_Type.objects.count()
+#     for ent in F3_Manifestation_Product_Type.objects.all():
+#         check = False
+#         count += 1
+#         print("Processing F3 {}/{}".format(count, total))
+#         txt_search_speedup = ""
+#         related_work = F1_Work.objects.filter(Q(triple_set_from_subj__obj=ent) | Q(triple_set_from_subj__obj__triple_set_from_subj__obj=ent, triple_set_from_subj__obj__triple_set_from_subj__prop__name="has host")).distinct()
+#         # Chapters
+#         is_in_chapters = Chapter.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="is in chapter")
+#         is_about_chapters = Chapter.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="is about")
+#         for chapter in is_in_chapters:
+#             txt_search_speedup += "isinchapter{} ".format(chapter.chapter_number)
+#         for chapter in is_about_chapters:
+#             txt_search_speedup += "isaboutchapter{} ".format(chapter.chapter_number)
+#         # Work
+#         is_about_work = E1_Crm_Entity.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="is about")
+#         for work in is_about_work:
+#             txt_search_speedup += "isaboutentity{} ".format(work.entity_id)
+#         # Keyword
+#         has_keyword = Keyword.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="has keyword")
+#         for kw in has_keyword:
+#             txt_search_speedup += "haskeyword{} ".format(kw.entity_id)
+
+#         if len(txt_search_speedup) > 0:
+#             check = True
+#             ent.vector_search_speedup_set = SearchVector(Value(txt_search_speedup))
+#         if check:
+#             ent.save()
+
 
 
 def run(*args, **options):
     def main_run():
         populate_indexes()
+        # populate_f3_indexes()
     main_run()

@@ -94,11 +94,11 @@ def filter_by_entity_id(expr_to_entity, role=None, check_dump=False, check_dump_
         entities = []
         # get internal id of entity with the given entity_id
         if is_chapter:
-            entities = [c.id for c in Chapter.objects.filter(chapter_number__in=value)]
+            entities = Chapter.objects.filter(chapter_number__in=value).values_list("id", flat=True)
         elif is_country:
-            entities = [c.id for c in F9_Place.objects.filter(country__in=value)]
+            entities = F9_Place.objects.filter(country__in=value).values_list("id", flat=True)
         else:
-            entities = [e.id for e in E1_Crm_Entity.objects.filter(entity_id__in=value)]
+            entities = E1_Crm_Entity.objects.filter(entity_id__in=value).values_list("id", flat=True)
         
         disjunction = Q()
         for (idx, entry) in enumerate(criteria_to_join):
@@ -214,11 +214,26 @@ def search_in_vectors(cols_to_check=["dump", "note", "e1"], names_to_check=None)
             return queryset.filter(disjunction).distinct("id")
         return build_filter_method
 
+def search_in_work_and_its_manifestations(role, entity_class, lookup_name="entity_id__in"):
+    def build_filter_method(queryset, name, value): 
+        entities = entity_class.objects.filter(Q(**{lookup_name: value})).values_list("id", flat=True)
+        f1_results = F1_Work.objects.filter(triple_set_from_subj__obj__id__in=entities, triple_set_from_subj__prop__name=role).distinct().values_list("id")
+        f3_results = F3_Manifestation_Product_Type.objects.filter(Q(triple_set_from_obj__subj_id__in=f1_results) & (Q(f3_manifestation_product_type__isnull=False) | Q(f31_performance__isnull=False))).distinct().values_list("id")
+        # mix= (f1_results | f3_results).distinct()
+        return queryset.filter(id__in=f1_results + f3_results)
+    return build_filter_method
+
+def filter_on_related_work(queryset, name, value):
+    matches = [q.id for q in queryset if next((item for item in q.related_work if item["genre"] in value), None)]
+    res = queryset.filter(Q(id__in=matches) | Q(f1_work__genre__in=value))
+    return res
+
+
+
+
 class SearchFilter2(django_filters.FilterSet):
     class TextInFilter(django_filters.BaseInFilter, django_filters.CharFilter):
         pass
-
-    
 
     searchTerm = django_filters.CharFilter(method=search_in_vectors(cols_to_check=["f10", "dump", "note", "e1", "e40"]))
     person = django_filters.CharFilter(method=search_in_vectors(cols_to_check=["e1", "f10", "dump", "note"]))
@@ -230,7 +245,6 @@ class SearchFilter2(django_filters.FilterSet):
     work_id = TextInFilter(method=filter_by_entity_id(["triple_set_from_obj__subj"], or_self=True))
     bibl_id = TextInFilter(field_name="f3_manifestation_product_type__entity_id", lookup_expr="in")
     honour_id = TextInFilter(field_name="honour__entity_id", lookup_expr="in")
-    genre = TextInFilter(field_name="f1_work__genre", lookup_expr="in")
     textLang = TextInFilter(field_name="f3_manifestation_product_type__text_language", lookup_expr="in")
     startDate = django_filters.DateFilter(method='start_date_filter')
     endDate = django_filters.DateFilter(method='end_date_filter')
@@ -288,10 +302,7 @@ def exclude_null_values(queryset, name, value):
     filter_name = "{}__isnull".format(name)
     return queryset.exclude(Q(**{filter_name: True}))
 
-def filter_on_related_work(queryset, name, value):
-    matches = [q.id for q in queryset if next((item for item in q.related_work if item["genre"] in value), None)]
-    res = queryset.filter(Q(id__in=matches) | Q(f1_work__genre__in=value))
-    return res
+
 
 class FacetFilter(django_filters.FilterSet):
     class TextInFilter(django_filters.BaseInFilter, django_filters.CharFilter):
