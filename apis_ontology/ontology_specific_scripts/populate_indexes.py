@@ -1,4 +1,5 @@
 
+from datetime import datetime
 from apis_ontology.models import Chapter, E1_Crm_Entity, E40_Legal_Body, F10_Person, F1_Work, F31_Performance, F3_Manifestation_Product_Type, Honour, Keyword, XMLNote, Xml_Content_Dump
 from django.contrib.postgres.search import SearchVector
 from django.contrib.contenttypes.models import ContentType
@@ -14,7 +15,7 @@ def populate_indexes():
     contenttype_note = ContentType.objects.get_for_model(model=XMLNote)
     contenttype_f1 = ContentType.objects.get_for_model(model=F1_Work)
     contenttype_f3 = ContentType.objects.get_for_model(model=F3_Manifestation_Product_Type)
-    contenttype_honour = ContentType.objects.get_for_model(model=Honour)
+    contenttype_chapter = ContentType.objects.get_for_model(model=Chapter)
     contenttype_f31 = ContentType.objects.get_for_model(model=F31_Performance)
     for ent in E1_Crm_Entity.objects_inheritance.select_subclasses("f1_work", "f3_manifestation_product_type", "honour", "f31_performance").all():
         count += 1
@@ -66,27 +67,34 @@ def populate_indexes():
         if len(txt_xml_note) > 0:
             check = True
             ent.vector_related_xml_note_set = SearchVector(Value(txt_xml_note), config='german')
-
+        t = datetime.now()
         txt_search_speedup = ""
         related_work = [ent]
         if ent.self_contenttype in [contenttype_f31, contenttype_f3]:
             related_work = F1_Work.objects.filter(Q(triple_set_from_subj__obj=ent) | Q(triple_set_from_subj__obj__triple_set_from_subj__obj=ent, triple_set_from_subj__obj__triple_set_from_subj__prop__name="has host")).distinct()
         # Chapters
-        is_in_chapters = Chapter.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="is in chapter")
-        is_about_chapters = Chapter.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="is about")
+        is_in_chapters = [triple.obj for work in related_work for triple in work.triple_set_from_subj.filter(prop__name="is in chapter")]
+        # is_about_chapters = [triple.obj for work in related_work for triple in work.triple_set_from_subj.filter(prop__name="is about")]
+        # is_in_chapters = Chapter.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="is in chapter")
+        # is_about_chapters = Chapter.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="is about")
         for chapter in is_in_chapters:
             txt_search_speedup += "isinchapter{} ".format(chapter.chapter_number)
-        for chapter in is_about_chapters:
-            txt_search_speedup += "isaboutchapter{} ".format(chapter.chapter_number)
+        # for chapter in is_about_chapters:
+        #     txt_search_speedup += "isaboutchapter{} ".format(chapter.chapter_number)
         # Work
-        is_about_work = E1_Crm_Entity.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="is about")
+        is_about_work = [triple.obj for work in related_work for triple in work.triple_set_from_subj.filter(prop__name="is about")]
+        # is_about_work = E1_Crm_Entity.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="is about")
         for work in is_about_work:
-            txt_search_speedup += "isaboutentity{} ".format(work.entity_id)
+            if work.self_contenttype == contenttype_chapter:
+                txt_search_speedup += "isaboutchapter{} ".format(work.chapter_number)
+            else:
+                txt_search_speedup += "isaboutentity{} ".format(work.entity_id)
         # Keyword
-        has_keyword = Keyword.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="has keyword")
+        has_keyword = [triple.obj for work in related_work for triple in work.triple_set_from_subj.filter(prop__name="has keyword")]
+        # has_keyword = Keyword.objects.filter(triple_set_from_obj__subj__in=related_work, triple_set_from_obj__prop__name="has keyword")
         for kw in has_keyword:
             txt_search_speedup += "haskeyword{} ".format(kw.entity_id)
-
+        print(datetime.now() - t)
         if len(txt_search_speedup) > 0:
             check = True
             ent.vector_search_speedup_set = SearchVector(Value(txt_search_speedup))
