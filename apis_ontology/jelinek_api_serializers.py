@@ -37,12 +37,14 @@ def remove_null_empty_from_dict(d):
 def add_type(self, obj):
     return obj.__class__.__name__
 
+def get_self_contenttype(self, obj):
+        return obj.self_contenttype.id 
+
 
 def create_serializer(model):
     dict_meta = {
         "model": model,
         "exclude": [
-            "source",
             "references",
             "notes",
             "review",
@@ -59,6 +61,8 @@ def create_serializer(model):
     dict_class = {
         "type": serializers.SerializerMethodField(method_name="add_type"),
         "add_type": add_type,
+        "self_contenttype": serializers.SerializerMethodField(method_name="get_self_contenttype"),
+        "get_self_contenttype": get_self_contenttype,
         "Meta": metaclass,
     }
     serializer_class = type(
@@ -95,6 +99,7 @@ class TripleSerializer(serializers.ModelSerializer):
     property = serializers.CharField(source="prop.name")
     index_in_chapter = serializers.SerializerMethodField(method_name="get_index_in_chapter")
     rendition_hidden = serializers.SerializerMethodField(method_name="get_rendition_hidden")
+    
 
     class Meta:
         model = Triple
@@ -124,6 +129,8 @@ class TripleSerializer(serializers.ModelSerializer):
                 return obj.temptriple.renditiontriple.rendition_hidden
         else:
             return False
+        
+    
 
 
 class TripleSerializerFromObj(TripleSerializer):
@@ -166,6 +173,7 @@ class SimpleTripleSerializerFromSubj(TripleSerializer):
 class IncludeImageSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     image_for_translation = serializers.SerializerMethodField()
+    self_contenttype = serializers.SerializerMethodField()
     
     def get_image(self, obj):
         qs = [t.obj for t in obj.triple_set_from_subj.filter(prop__name="has image")]
@@ -185,7 +193,8 @@ class IncludeImageSerializer(serializers.ModelSerializer):
             return serializer(qs[0]).data
         else:
             return None
-        
+    def get_self_contenttype(self, obj):
+        return obj.self_contenttype.id 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         return remove_null_empty_from_dict(ret)      
@@ -194,12 +203,10 @@ class F1WorkSerializer(IncludeImageSerializer):
     class Meta:
         model = F1_Work
         exclude = [
-            "source",
             "status",
             "references",
             "notes",
             "review",
-            "text",
             "collection"
         ]
         depth = 1
@@ -207,12 +214,10 @@ class HonourSerializer(IncludeImageSerializer):
     class Meta:
         model = Honour
         exclude = [
-            "source",
             "status",
             "references",
             "notes",
             "review",
-            "text",
             "collection"
         ]
         depth = 1
@@ -225,6 +230,7 @@ class F3ManifestationProductTypeSerializer(serializers.ModelSerializer):
     triple_set_from_obj = TripleSerializerFromObj(many=True, read_only=True)
     triple_set_from_subj = TripleSerializerFromSubj(source="filtered_triples_from_subj", many=True, read_only=True)
     has_children = serializers.SerializerMethodField(method_name="add_has_children")
+    self_contenttype = serializers.SerializerMethodField()
     # triple_set_from_obj = serializers.SerializerMethodField(
     #     method_name="add_triple_set_from"
     # )
@@ -232,7 +238,6 @@ class F3ManifestationProductTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = F3_Manifestation_Product_Type
         exclude = [
-            "source",
             "status",
             "references",
             "notes",
@@ -248,6 +253,8 @@ class F3ManifestationProductTypeSerializer(serializers.ModelSerializer):
     def add_has_children(self, obj):
        c = obj.triple_set_from_obj.filter(prop__name="has host").count()
        return c
+    def get_self_contenttype(self, obj):
+        return obj.self_contenttype.id
     # def add_triple_set_from(self, obj):
     #     return obj.get_triple_set()
 
@@ -265,7 +272,6 @@ class F31PerformanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = F31_Performance
         exclude = [
-            "source",
             "status",
             "references",
             "notes",
