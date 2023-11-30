@@ -134,64 +134,6 @@ def search_in_xml_content_dump(value, classes_to_check=[]):
 def empty_filter(queryset, name, value):
     return queryset
 
-      
-class SearchFilter(django_filters.FilterSet):
-    class TextInFilter(django_filters.BaseInFilter, django_filters.CharFilter):
-        pass
-    person = django_filters.CharFilter(method=filter_entity(["triple_set_from_obj__subj"], class_to_check=F10_Person, lookup_expr="contains", check_dump=True))
-    person_id = TextInFilter(method=filter_by_entity_id(["triple_set_from_obj__subj"], check_dump=True))
-    institution = django_filters.CharFilter(method=filter_entity(["triple_set_from_obj__subj", "triple_set_from_subj__obj"], class_to_check=E40_Legal_Body, lookup_expr="contains", check_dump=True))
-    institution_id = TextInFilter(method=filter_by_entity_id(["triple_set_from_obj__subj", "triple_set_from_subj__obj"], check_dump=True))
-    title = django_filters.CharFilter(field_name="f1_work__name", lookup_expr="contains")
-    work_id = TextInFilter(field_name="f1_work__entity_id", lookup_expr="in")
-    # honour = django_filters.CharFilter(field_name="honour__name", lookup_expr="contains")
-    honour_id = TextInFilter(field_name="honour__entity_id", lookup_expr="in")
-    
-    bibl_id = TextInFilter(field_name="f3_manifestation_product_type__entity_id", lookup_expr="in")
-    genre = TextInFilter(field_name="f1_work__genre", lookup_expr="in")
-    chapter_id = TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"], role="is in chapter", check_dump=False, is_chapter=True))
-    keyword = TextInFilter(method=filter_entity(["triple_set_from_subj__obj"], class_to_check=Keyword, lookup_expr="in"))
-    keyword_id = TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"]))
-    textLang = TextInFilter(field_name="f3_manifestation_product_type__text_language", lookup_expr="in")
-    place = TextInFilter(method=filter_entity(["triple_set_from_subj__obj"], class_to_check=F9_Place, lookup_expr="in"))
-    country = TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"], is_country=True))
-    place_id = TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"]))
-    mediatype = TextInFilter(method=filter_entity(["triple_set_from_subj__obj"], class_to_check=E55_Type, lookup_expr="in"))
-    startDate = django_filters.DateFilter(field_name="start_start_date", lookup_expr="gte")
-    endDate = django_filters.DateFilter(field_name="start_end_date", lookup_expr="lte")
-    searchTerm = django_filters.CharFilter(method=filter_entity(["", "triple_set_from_obj__subj", "triple_set_from_subj__obj"], lookup_expr="contains", check_dump=True, class_to_check=[F10_Person, E40_Legal_Body, F1_Work]))
-
-    @property
-    def qs(self):
-        if "person_id" in self.data:
-            self.filters['person'] = django_filters.CharFilter(method=empty_filter)
-        if "person" in self.data:
-            self.filters['person_id'] = self.TextInFilter(method=filter_by_entity_id(["triple_set_from_obj__subj"], check_dump=True, check_dump_for_name=self.data["person"]))
-        if "personRole" in self.data:
-            if "about" in self.data["personRole"]:
-                self.filters['person_id'] = self.TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"], role="is about"))
-            else:
-                self.filters['person'] = django_filters.CharFilter(method=filter_entity(["triple_set_from_obj__subj"], class_to_check=F10_Person, lookup_expr="contains", role=self.data["personRole"]))
-                self.filters['person_id'] = self.TextInFilter(method=filter_by_entity_id(["triple_set_from_obj__subj"], role=self.data["personRole"]))
-        if "institution_id" in self.data:
-            self.filters['institution'] = django_filters.CharFilter(method=empty_filter)
-        if "institution" in self.data:
-            self.filters['institution_id'] = self.TextInFilter(method=filter_by_entity_id(["triple_set_from_obj__subj", "triple_set_from_subj__obj"], check_dump=True, check_dump_for_name=self.data["institution"]))
-        if "institutionRole" in self.data:
-            if "about" in self.data["institutionRole"]:
-                self.filters['institution_id'] = self.TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"], role="is about"))
-            else:
-                self.filters['institution'] = django_filters.CharFilter(method=filter_entity(["triple_set_from_obj__subj", "triple_set_from_subj__obj"], class_to_check=E40_Legal_Body, lookup_expr="contains", role=self.data["institutionRole"]))
-                self.filters['institution_id'] =  self.TextInFilter(method=filter_by_entity_id(["triple_set_from_obj__subj", "triple_set_from_subj__obj"], role=self.data["institutionRole"]))
-        if "workRole" in self.data and "about" in self.data["workRole"]:
-            self.filters['work_id'] = self.TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"], role="is about"))
-        if "honourRole" in self.data and "about" in self.data["honourRole"]:
-            self.filters['honour_id'] = self.TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"], role="is about"))
-        if "chapterRole" in self.data and "about" in self.data["chapterRole"]:
-            self.filters['chapter_id'] = self.TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"], role="is about", is_chapter=True, check_dump=False))
-        parent = super(SearchFilter, self).qs
-        return parent
-
 def search_in_vectors(cols_to_check=["dump", "note", "e1"], names_to_check=None):
         def build_filter_method(queryset, name, value):
             if isinstance(value, list):
@@ -228,10 +170,7 @@ def filter_on_related_work(queryset, name, value):
     res = queryset.filter(Q(id__in=matches) | Q(f1_work__genre__in=value))
     return res
 
-
-
-
-class SearchFilter2(django_filters.FilterSet):
+class SearchFilter(django_filters.FilterSet):
     class TextInFilter(django_filters.BaseInFilter, django_filters.CharFilter):
         pass
 
@@ -295,7 +234,7 @@ class SearchFilter2(django_filters.FilterSet):
             self.filters['honour_id'] = self.TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"], role="is about"))
         if "chapterRole" in self.data and "about" in self.data["chapterRole"]:
             self.filters['chapter_id'] = self.TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"], role="is about", is_chapter=True, check_dump=False))
-        parent = super(SearchFilter2, self).qs
+        parent = super(SearchFilter, self).qs
         return parent
 
 def exclude_null_values(queryset, name, value):
