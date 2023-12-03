@@ -1,3 +1,4 @@
+from ast import literal_eval
 from rest_framework.response import Response
 from rest_framework import viewsets
 from .models import *
@@ -12,12 +13,59 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.expressions import ArraySubquery
 from apis_core.apis_relations.models import Triple, Property
 from django.contrib.contenttypes.models import ContentType
+from django_filters.rest_framework import DjangoFilterBackend
+
+def query_params_to_filter_dict(query_params):
+    params = {}
+    was_parsed = False
+    for k, v in query_params.items():
+        # check for pagination params:
+        if k == "limit" or k == "offset":
+            continue
+        # check for int
+        try:
+            v = int(v)
+        except:
+            pass
+        else:
+            was_parsed = True
+        # check for boolean
+        if not was_parsed:
+            if v.lower() == "true":
+                v = True
+                was_parsed = True
+            elif v.lower() == "false":
+                v = False
+                was_parsed = True
+        # check for list
+        if not was_parsed:
+            if k.endswith("__in"):
+                try:
+                    v = literal_eval(v)
+                except:
+                    pass
+                else:
+                    was_parsed = True
+        params[k] = v
+    return params
 
 
 class F3ManifestationProductType(viewsets.ReadOnlyModelViewSet):
     serializer_class = F3ManifestationProductTypeSerializer
-    filter_class = F3ManifestationProductTypeFilter
+    # filter_class = F3ManifestationProductTypeFilter
     queryset = F3_Manifestation_Product_Type.objects.all().prefetch_related('triple_set_from_obj', 'triple_set_from_subj')
+    def get_queryset(self):
+        qs = super().get_queryset()
+        params = query_params_to_filter_dict(self.request.query_params)
+        return qs.filter(**params)
+    
+class Notes(viewsets.ReadOnlyModelViewSet):
+    serializer_class = NoteSerializer
+    queryset = XMLNote.objects.all().prefetch_related('triple_set_from_obj')
+    def get_queryset(self):
+        qs = super().get_queryset()
+        params = query_params_to_filter_dict(self.request.query_params)
+        return qs.filter(**params)
 
 class F31Performance(viewsets.ReadOnlyModelViewSet):
     serializer_class = F31PerformanceSerializer
@@ -103,3 +151,20 @@ class EntitiesWithoutRelations(viewsets.ReadOnlyModelViewSet):
     queryset = E1_Crm_Entity.objects.annotate(relation_count=Count("triple_set_from_obj")+Count("triple_set_from_subj", filter=Q(triple_set_from_subj__obj__name__regex=r'^(?!.*_index\.xml$).*$'))).filter(relation_count=0)
     serializer_class = LonelyE1CrmEntitySerializer
     filter_class=EntitiesWithoutRelationsFilter
+
+class Triples(viewsets.ReadOnlyModelViewSet):
+    queryset = Triple.objects.all().select_related('obj', 'subj', 'prop')
+    serializer_class = SimpleTripleSerializer
+    def get_queryset(self):
+        qs = super().get_queryset()
+        params = query_params_to_filter_dict(self.request.query_params)
+        return qs.filter(**params)
+    
+class PersonTriples(viewsets.ReadOnlyModelViewSet):
+    queryset = Triple.objects.all().select_related('obj', 'prop').prefetch_related('subj')
+    serializer_class = PersonTripleSerializer
+    def get_queryset(self):
+        qs = super().get_queryset()
+        params = query_params_to_filter_dict(self.request.query_params)
+        return qs.filter(**params)
+    

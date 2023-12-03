@@ -17,6 +17,13 @@ router.register(r'work_for_chapter', WorkForChapter, basename='WorkForChapter')
 router.register(r'search', Search, basename="Search")
 router.register(r'entities_without_relations', EntitiesWithoutRelations, basename='EntitiesWithoutRelations')
 
+# rebuild additional serializers
+router.register(r'triples', Triples, basename='Triples')
+router.register(r'person_triples', PersonTriples, basename='PersonTriples')
+# router.register(r'manifestation_details', ManifestationDetails, basename='ManifestationDetails')
+router.register(r'notes', Notes, basename='Notes')
+
+
 customurlpatterns = [
     path('custom-api/', include(router.urls)),
     path("accounts/", include("django.contrib.auth.urls")),

@@ -44,23 +44,21 @@ def get_self_contenttype(self, obj):
 def create_serializer(model):
     dict_meta = {
         "model": model,
-        "exclude": [
-            "references",
-            "notes",
-            "review",
-        ],
         "depth": 3,
+        'exclude': ['vector_column_e1_set', 'vector_related_f10_set', 'vector_related_E40_set', 'vector_related_xml_note_set']
     }
     if model.__name__ == "Xml_File":
         dict_meta["exclude"].append("file_content")
+    if model.__name__ in ["Chapter", "XMLNote", 'Keyword', 'Xml_Content_Dump', 'Xml_File']:
+        dict_meta["exclude"] = []
     metaclass = type(
         f"{model.__name__}MetaClass",
         (),
         dict_meta,
     )
     dict_class = {
-        "type": serializers.SerializerMethodField(method_name="add_type"),
-        "add_type": add_type,
+        # "type": serializers.SerializerMethodField(method_name="add_type"),
+        # "add_type": add_type,
         "self_contenttype": serializers.SerializerMethodField(method_name="get_self_contenttype"),
         "get_self_contenttype": get_self_contenttype,
         "Meta": metaclass,
@@ -169,6 +167,32 @@ class SimpleTripleSerializerFromSubj(TripleSerializer):
             obj.obj.__class__.__name__, create_serializer(obj.obj.__class__)
         )
         return serializer(obj.obj).data
+
+class SimpleTripleSerializer(serializers.ModelSerializer):
+    prop = serializers.CharField(source="prop.name")
+    class Meta:
+        model = Triple
+        fields = "__all__"
+        depth= 1
+        
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        return remove_null_empty_from_dict(ret)  
+class SimplePersonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = F10_Person
+        fields = ["id", "name", "surname", "forename", "entity_id", "self_contenttype"]
+class PersonTripleSerializer(serializers.ModelSerializer):
+    prop = serializers.CharField(source="prop.name")
+    subj = SimplePersonSerializer(read_only=True)
+    # obj = serializers.SerializerMethodField(method_name='add_related_entity_from_obj')
+    class Meta:
+        model = Triple
+        fields = "__all__"
+        depth= 1
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        return remove_null_empty_from_dict(ret)  
 
 class IncludeImageSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
@@ -469,3 +493,16 @@ class LonelyE1CrmEntitySerializer(serializers.ModelSerializer):
         depth=1
     def get_details_url(self, obj):
         return "https://apis-jelinek.acdh-dev.oeaw.ac.at/apis/entities/entity/e1_crm_entity/{}/detail/".format(obj.id)
+
+class NoteSerializer(serializers.ModelSerializer):
+    triple_set_from_obj = SimpleTripleSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = XMLNote
+        fields = "__all__"
+        depth = 1
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        return remove_null_empty_from_dict(ret)
+    
