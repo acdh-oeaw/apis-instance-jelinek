@@ -137,7 +137,21 @@ def empty_filter(queryset, name, value):
 def search_in_vectors(cols_to_check=["dump", "note", "e1"], names_to_check=None):
         def build_filter_method(queryset, name, value):
             if isinstance(value, list):
-                value = SearchQuery(" | ".join([entry.replace("_", "").replace(" ", "&") for entry in value]), search_type="raw", config="german")
+                search_keyword = ""
+                replace_underscore = False
+                if "about_chapter" in cols_to_check:
+                    search_keyword = "isaboutchapter"
+                    replace_underscore = True
+                if "chapter" in cols_to_check:
+                    search_keyword = "isinchapter"
+                    replace_underscore = True
+                if "keyword" in cols_to_check:
+                    search_keyword = "haskeyword"
+                    replace_underscore = True
+                if replace_underscore:
+                    value = SearchQuery(" | ".join(["{}{}".format(search_keyword, entry.replace(" ", "&")) for entry in value]), search_type="raw", config="german")
+                else:
+                    value = SearchQuery(" | ".join(["{}{}".format(search_keyword, entry.replace("_", "").replace(" ", "&")) for entry in value]), search_type="raw", config="german")
                 if names_to_check is not None:
                     value = value | SearchQuery(" | ".join([entry.replace("_", "").replace(" ", "&") for entry in names_to_check]), search_type="raw", config="german")
             else:
@@ -153,6 +167,12 @@ def search_in_vectors(cols_to_check=["dump", "note", "e1"], names_to_check=None)
                 disjunction = disjunction | Q(vector_related_f10_set=value)
             if "e40" in cols_to_check:
                 disjunction = disjunction | Q(vector_related_E40_set=value)
+            if "about_chapter" in cols_to_check:
+                disjunction = disjunction | Q(vector_search_speedup_set=value)
+            if "chapter" in cols_to_check:
+                disjunction = disjunction | Q(vector_search_speedup_set=value)
+            if "keyword" in cols_to_check:
+                disjunction = disjunction | Q(vector_search_speedup_set=value)
             return queryset.filter(disjunction).distinct("id")
         return build_filter_method
 
@@ -188,9 +208,9 @@ class SearchFilter(django_filters.FilterSet):
     startDate = django_filters.DateFilter(method='start_date_filter')
     endDate = django_filters.DateFilter(method='end_date_filter')
 
-    chapter_id = TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"], role="is in chapter", check_dump=False, is_chapter=True))
+    chapter_id = TextInFilter(method=search_in_vectors(cols_to_check=["chapter"]))
     keyword = TextInFilter(method=filter_entity(["triple_set_from_subj__obj"], class_to_check=Keyword, lookup_expr="in"))
-    keyword_id = TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"]))
+    keyword_id = TextInFilter(method=search_in_vectors(cols_to_check=["keyword"]))
     
     place = TextInFilter(method=filter_entity(["triple_set_from_subj__obj"], class_to_check=F9_Place, lookup_expr="in"))
     country = TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"], is_country=True))
@@ -233,7 +253,7 @@ class SearchFilter(django_filters.FilterSet):
         if "honourRole" in self.data and "about" in self.data["honourRole"]:
             self.filters['honour_id'] = self.TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"], role="is about"))
         if "chapterRole" in self.data and "about" in self.data["chapterRole"]:
-            self.filters['chapter_id'] = self.TextInFilter(method=filter_by_entity_id(["triple_set_from_subj__obj"], role="is about", is_chapter=True, check_dump=False))
+            self.filters['chapter_id'] = self.TextInFilter(method=search_in_vectors(cols_to_check=["about_chapter"]))
         parent = super(SearchFilter, self).qs
         return parent
 
