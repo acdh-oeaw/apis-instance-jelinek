@@ -40,7 +40,8 @@ class ChapterFilter(django_filters.FilterSet):
     class Meta:
         model = Chapter
         fields = {'id': ['exact', 'in'],
-                  'chapter_number': ['exact', 'in']
+                  'chapter_number': ['exact', 'in', 'iregex'],
+                  'name': ['exact', 'in', 'iregex']
                   }
         
 def filter_entity(expr_to_entity, class_to_check=None, role=None, lookup_expr="in", property_to_check="name", check_dump=False):
