@@ -22,6 +22,7 @@ router.register(r'triples', Triples, basename='Triples')
 router.register(r'person_triples', PersonTriples, basename='PersonTriples')
 # router.register(r'manifestation_details', ManifestationDetails, basename='ManifestationDetails')
 router.register(r'notes', Notes, basename='Notes')
+router.register(r'work_chapters', WorkChapters, basename='WorkChapters')
 
 
 customurlpatterns = [

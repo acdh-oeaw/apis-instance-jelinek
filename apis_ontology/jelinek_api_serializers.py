@@ -234,6 +234,17 @@ class F1WorkSerializer(IncludeImageSerializer):
             "collection"
         ]
         depth = 1
+
+class WorkChapterSerializer(serializers.ModelSerializer):
+    triple_set_from_subj = TripleSerializerFromSubj(source='is_in_chapter_triples', read_only=True, many=True)
+    class Meta:
+        model = F1_Work
+        fields = ["name", "id", "triple_set_from_subj"]
+        depth = 2
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        return remove_null_empty_from_dict(ret)  
+
 class HonourSerializer(IncludeImageSerializer):
     class Meta:
         model = Honour

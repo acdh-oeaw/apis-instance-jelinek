@@ -105,6 +105,9 @@ class F1_Work(E1_Crm_Entity):
         super().__init__(*args, **kwargs)
         self.entity_id = self.idno
 
+    def is_in_chapter_triples(self):
+        return self.triple_set_from_subj.filter(prop__name="is in chapter")
+
 @reversion.register(follow=["tempentityclass_ptr"])
 class Honour(E1_Crm_Entity):
     honour_id = models.CharField(max_length=1024, blank=True, null=True)

@@ -87,6 +87,14 @@ class WorkForChapter(viewsets.ReadOnlyModelViewSet):
     queryset = Chapter.objects.all().prefetch_related('triple_set_from_subj')
     serializer_class = WorkForChapterSerializer
 
+class WorkChapters(viewsets.ReadOnlyModelViewSet):
+    queryset = F1_Work.objects.all().prefetch_related('triple_set_from_subj')
+    serializer_class = WorkChapterSerializer
+    def get_queryset(self):
+        qs = super().get_queryset()
+        params = query_params_to_filter_dict(self.request.query_params)
+        return qs.filter(**params)
+
 
 class Search(viewsets.ReadOnlyModelViewSet):
     filter_class = SearchFilter
