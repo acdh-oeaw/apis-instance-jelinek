@@ -169,7 +169,7 @@ class SimpleTripleSerializerFromSubj(TripleSerializer):
         return serializer(obj.obj).data
 
 class SimpleTripleSerializer(serializers.ModelSerializer):
-    prop = serializers.CharField(source="prop.name")
+    property = serializers.CharField(source="prop.name")
     class Meta:
         model = Triple
         fields = "__all__"
@@ -183,7 +183,7 @@ class SimplePersonSerializer(serializers.ModelSerializer):
         model = F10_Person
         fields = ["id", "name", "surname", "forename", "entity_id", "self_contenttype"]
 class PersonTripleSerializer(serializers.ModelSerializer):
-    prop = serializers.CharField(source="prop.name")
+    property = serializers.CharField(source="prop.name")
     subj = SimplePersonSerializer(read_only=True)
     # obj = serializers.SerializerMethodField(method_name='add_related_entity_from_obj')
     class Meta:
