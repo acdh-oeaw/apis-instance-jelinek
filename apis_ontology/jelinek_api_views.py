@@ -112,8 +112,8 @@ class Search(viewsets.ReadOnlyModelViewSet):
     
     def get_queryset(self):
         f31_only = self.request.GET.get("return_type", "") == "f31"
-        work_only_fields = ["title", "work_id", "honour_id", "genre", "genreFilter", "chapter_id", "keyword", "keyword_id", "workRole", 
-                            "honourRole", "chapterRole", "limit", "filter_genre", "filter_keywords", "filter_startDate", 
+        work_only_fields = ["title", "work_id", "honour_id", "genre", "genreFilter", "chapter_id", "chapter", "keyword", "keyword_id", "workRole", 
+                            "honourRole", "chapterRole", "limit", "offset", "filter_genre", "filter_keywords", "filter_startDate", 
                             "filter_endDate", "filter_persons", "filter_institutions", "filter_personRoles", "filter_institutionRoles"]
         work_only = set(i[0] for i in self.request.GET.items() if i[1] is not None and i[1] != "").issubset(work_only_fields)
         
@@ -137,7 +137,7 @@ class Search(viewsets.ReadOnlyModelViewSet):
             subclass_filter = Q(f1_work__isnull=False) | Q(honour__isnull=False)
         elif f31_only:
             subclass_filter = Q(f31_performance__isnull=False)
-        qs = E1_Crm_Entity.objects_inheritance.select_subclasses("f1_work", "f3_manifestation_product_type", "honour", "f31_performance").filter(subclass_filter).annotate(
+        qs = E1_Crm_Entity.objects_inheritance.select_subclasses("f1_work", "f3_manifestation_product_type", "honour", "f31_performance").filter(subclass_filter).prefetch_related("triple_set_from_subj", "triple_set_from_obj").annotate(
             related_persons=ArraySubquery(person_subquery),
             related_person_roles=ArraySubquery(person_property_subquery), 
             related_institutions=ArraySubquery(institution_subquery),
