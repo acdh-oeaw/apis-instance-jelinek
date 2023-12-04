@@ -18,7 +18,7 @@ def populate_indexes():
     contenttype_f3 = ContentType.objects.get_for_model(model=F3_Manifestation_Product_Type)
     contenttype_chapter = ContentType.objects.get_for_model(model=Chapter)
     contenttype_f31 = ContentType.objects.get_for_model(model=F31_Performance)
-    for ent in E1_Crm_Entity.objects_inheritance.select_subclasses("f1_work", "f3_manifestation_product_type", "honour", "f31_performance").order_by('self_contenttype').all()[10000:]:
+    for ent in E1_Crm_Entity.objects_inheritance.select_subclasses("f1_work", "f3_manifestation_product_type", "honour", "f31_performance").order_by('self_contenttype').all():
         count += 1
         print("Processing entity {} of {}: {}".format(count, total, ent.self_contenttype.name))
         txt_e1 = ""
