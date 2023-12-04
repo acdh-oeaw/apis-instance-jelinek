@@ -244,6 +244,7 @@ class WorkChapterSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         return remove_null_empty_from_dict(ret)  
+ 
 
 class HonourSerializer(IncludeImageSerializer):
     class Meta:
@@ -338,6 +339,40 @@ class WorkForChapterSerializer(serializers.ModelSerializer):
         qs = obj.triple_set_from_obj.filter(prop__name="is in chapter")
         serializer = TripleSerializerFromObj(instance=qs, many=True, read_only=True)
         return serializer.data
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        return remove_null_empty_from_dict(ret)
+
+
+class SimplifiedWorkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = F1_Work
+        fields = ["id", "name", "index_desc", "idno"]
+
+class SimplifiedWorkForChapterTripleSerializer(serializers.ModelSerializer):
+    subj = SimplifiedWorkSerializer(read_only=True)
+    class Meta:
+        model = Triple
+        exclude = [
+            "obj",
+        ]
+        depth = 2
+    
+class SimplifiedWorkForChapterSerializer(serializers.ModelSerializer):
+    """
+    Custom simplified serializer to load work for chapter
+    """
+    contained_work = serializers.JSONField(read_only=True)
+    class Meta:
+        model = Chapter
+        fields = [
+            "id", 
+            "name",
+            "chapter_number",
+            "contained_work"
+        ]
+        depth = 2
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)

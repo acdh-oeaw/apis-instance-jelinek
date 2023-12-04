@@ -84,8 +84,19 @@ class Honour(viewsets.ReadOnlyModelViewSet):
 
 class WorkForChapter(viewsets.ReadOnlyModelViewSet):
     filter_class = ChapterFilter
-    queryset = Chapter.objects.all().prefetch_related('triple_set_from_subj')
+    queryset = Chapter.objects.all().prefetch_related('triple_set_from_obj')
     serializer_class = WorkForChapterSerializer
+
+class OriginalWorkOnly(viewsets.ReadOnlyModelViewSet):
+    filter_class = ChapterFilter
+    queryset = Chapter.objects.filter(
+        chapter_number__in=["1", "4"]
+        ).exclude(
+            chapter_number__in=["1.4.1", "1.10.1", "1.13.1", "1.1.1"]
+            ).annotate(
+                    contained_work=ArraySubquery(F1_Work.objects.filter(triple_set_from_subj__prop__name="is in chapter", triple_set_from_subj__obj__id=OuterRef("pk")).values(json=JSONObject(name="name", entity_id="entity_id", id="id", index_desc="index_desc")))
+                )
+    serializer_class = SimplifiedWorkForChapterSerializer
 
 class WorkChapters(viewsets.ReadOnlyModelViewSet):
     queryset = F1_Work.objects.all().prefetch_related('triple_set_from_subj')
