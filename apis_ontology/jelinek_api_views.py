@@ -52,7 +52,7 @@ def query_params_to_filter_dict(query_params):
 
 class F3ManifestationProductType(viewsets.ReadOnlyModelViewSet):
     serializer_class = F3ManifestationProductTypeSerializer
-    queryset = F3_Manifestation_Product_Type.objects.all().prefetch_related('triple_set_from_obj', 'triple_set_from_subj')
+    queryset = F3_Manifestation_Product_Type.objects.all()#.prefetch_related('triple_set_from_obj', 'triple_set_from_subj')
     def get_queryset(self):
         qs = super().get_queryset()
         params = query_params_to_filter_dict(self.request.query_params)
@@ -150,7 +150,7 @@ class Search(viewsets.ReadOnlyModelViewSet):
             subclass_filter = Q(f1_work__isnull=False) | Q(honour__isnull=False)
         elif f31_only:
             subclass_filter = Q(f31_performance__isnull=False)
-        qs = E1_Crm_Entity.objects_inheritance.select_subclasses("f1_work", "f3_manifestation_product_type", "honour", "f31_performance", "f26_recording").filter(subclass_filter).prefetch_related("triple_set_from_subj", "triple_set_from_obj").annotate(
+        qs = E1_Crm_Entity.objects_inheritance.select_subclasses("f1_work", "f3_manifestation_product_type", "honour", "f31_performance", "f26_recording").filter(subclass_filter).annotate(
             related_persons=ArraySubquery(person_subquery),
             related_person_roles=ArraySubquery(person_property_subquery), 
             related_institutions=ArraySubquery(institution_subquery),

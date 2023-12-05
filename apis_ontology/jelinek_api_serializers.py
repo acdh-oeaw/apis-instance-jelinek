@@ -49,10 +49,10 @@ def create_serializer(model):
         "depth": 3,
         'exclude': ['vector_column_e1_set', 'vector_related_f10_set', 'vector_related_E40_set', 'vector_related_xml_note_set', 'vector_search_speedup_set']
     }
-    if model.__name__ == "Xml_File":
-        dict_meta["exclude"].append("file_content")
     if model.__name__ in ["Chapter", "XMLNote", 'Keyword', 'Xml_Content_Dump', 'Xml_File']:
         dict_meta["exclude"] = []
+    if model.__name__ == "Xml_File":
+        dict_meta["exclude"].append("file_content")
     metaclass = type(
         f"{model.__name__}MetaClass",
         (),
