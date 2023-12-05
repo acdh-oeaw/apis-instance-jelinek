@@ -67,12 +67,13 @@ def create_serializer(model):
         f"{model.__name__}Serializer", (serializers.ModelSerializer,), dict_class
     )
     serializers_cache[model.__name__] = serializer_class
+    print("Get serializer")
 
     return serializer_class
 
 
 def patch_serializer(model):
-    serializer = serializers_cache.get(model.__name__, create_serializer(model))
+    serializer = serializers_cache.get(model.__name__) or create_serializer(model)
 
     dict_class = {
         "triple_set_from_obj": TripleSerializerFromObj(source="filtered_triples_from_obj", many=True, read_only=True),
@@ -90,6 +91,7 @@ def patch_serializer(model):
     )
     serializer_class.add_has_children = add_has_children
     serializers_cache_patched[model.__name__] = serializer_class
+    print("Patch serializer")
     return serializer_class
 
 
@@ -140,8 +142,8 @@ class TripleSerializerFromObj(TripleSerializer):
             serializer = F1WorkSerializer
         else:
             serializer = serializers_cache.get(
-                obj.subj.__class__.__name__, create_serializer(obj.subj.__class__)
-            )
+                obj.subj.__class__.__name__) or create_serializer(obj.subj.__class__)
+            
         return serializer(obj.subj).data
 
 
@@ -151,21 +153,19 @@ class TripleSerializerFromSubj(TripleSerializer):
     def add_related_entity(self, obj):
         if obj.prop.name == "has host": 
             serializer = serializers_cache_patched.get(
-                obj.obj.__class__.__name__, patch_serializer(obj.obj.__class__)
-            )
+                obj.obj.__class__.__name__) or patch_serializer(obj.obj.__class__)
         else:
             serializer = serializers_cache.get(
-                obj.obj.__class__.__name__, create_serializer(obj.obj.__class__)
-            )
+                obj.obj.__class__.__name__) or create_serializer(obj.obj.__class__)
+            
         return serializer(obj.obj).data
     
 class SimpleTripleSerializerFromSubj(TripleSerializer):
     related_entity = serializers.SerializerMethodField(method_name="add_related_entity")
 
     def add_related_entity(self, obj):
-        serializer = serializers_cache.get(
-            obj.obj.__class__.__name__, create_serializer(obj.obj.__class__)
-        )
+        serializer = serializer = serializers_cache.get(
+                obj.obj.__class__.__name__) or create_serializer(obj.obj.__class__)
         return serializer(obj.obj).data
 
 class SimpleTripleSerializer(serializers.ModelSerializer):
@@ -203,8 +203,8 @@ class IncludeImageSerializer(serializers.ModelSerializer):
         qs = [t.obj for t in obj.triple_set_from_subj.filter(prop__name="has image")]
         if len(qs) > 0:
             serializer = serializers_cache.get(
-                qs[0].__class__.__name__, create_serializer(qs[0].__class__)
-            )
+                qs[0].__class__.__name__) or create_serializer(qs[0].__class__)
+            
             return serializer(qs[0]).data
         else:
             return None
@@ -212,8 +212,8 @@ class IncludeImageSerializer(serializers.ModelSerializer):
         qs = [t.obj for t in obj.triple_set_from_subj.filter(prop__name="has image for translation")]
         if len(qs) > 0:
             serializer = serializers_cache.get(
-                qs[0].__class__.__name__, create_serializer(qs[0].__class__)
-            )
+                qs[0].__class__.__name__) or create_serializer(qs[0].__class__)
+            
             return serializer(qs[0]).data
         else:
             return None
