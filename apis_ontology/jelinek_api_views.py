@@ -143,14 +143,14 @@ class Search(viewsets.ReadOnlyModelViewSet):
         # include host type if type is "analyticPublication"
         mediatype_host_subquery = Q(triple_set_from_obj__subj__triple_set_from_obj__subj_id=OuterRef("pk"), triple_set_from_obj__subj__triple_set_from_obj__subj__triple_set_from_subj__obj__name="analyticPublication")
         mediatype_subquery = E55_Type.objects.filter(triple_set_from_obj__subj_id=OuterRef("pk")).union(E55_Type.objects.filter(mediatype_host_subquery)).values_list('name', flat=True)
-        work_subquery = F1_Work.objects.filter(triple_set_from_subj__obj_id=OuterRef("pk"), triple_set_from_subj__prop__name__in=["is expressed in", "is reported in", "is original for translation", "has been performed in"]).distinct().values(json=JSONObject(pk="pk", name="name", genre="genre", entity_id="entity_id"))
+        work_subquery = F1_Work.objects.filter(triple_set_from_subj__obj_id=OuterRef("pk"), triple_set_from_subj__prop__name__in=["is expressed in", "is reported in", "is original for translation", "has been performed in", "R13 is realised in"]).distinct().values(json=JSONObject(pk="pk", name="name", genre="genre", entity_id="entity_id"))
         work_host_subquery = F1_Work.objects.filter(triple_set_from_subj__obj__triple_set_from_subj__obj_id=OuterRef("pk"), triple_set_from_subj__prop__name__in=["is expressed in", "is reported in", "is original for translation", "has been performed in"]).distinct().values(json=JSONObject(pk="pk", name="name", genre="genre", entity_id="entity_id"))
-        subclass_filter = Q(f1_work__isnull=False) | Q(honour__isnull=False) | Q(f3_manifestation_product_type__isnull=False) | Q(f31_performance__isnull=False)
+        subclass_filter = Q(f1_work__isnull=False) | Q(honour__isnull=False) | Q(f3_manifestation_product_type__isnull=False) | Q(f31_performance__isnull=False) | Q(f26_recording__isnull=False)
         if work_only:
             subclass_filter = Q(f1_work__isnull=False) | Q(honour__isnull=False)
         elif f31_only:
             subclass_filter = Q(f31_performance__isnull=False)
-        qs = E1_Crm_Entity.objects_inheritance.select_subclasses("f1_work", "f3_manifestation_product_type", "honour", "f31_performance").filter(subclass_filter).prefetch_related("triple_set_from_subj", "triple_set_from_obj").annotate(
+        qs = E1_Crm_Entity.objects_inheritance.select_subclasses("f1_work", "f3_manifestation_product_type", "honour", "f31_performance", "f26_recording").filter(subclass_filter).prefetch_related("triple_set_from_subj", "triple_set_from_obj").annotate(
             related_persons=ArraySubquery(person_subquery),
             related_person_roles=ArraySubquery(person_property_subquery), 
             related_institutions=ArraySubquery(institution_subquery),
