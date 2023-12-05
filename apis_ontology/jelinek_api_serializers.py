@@ -19,8 +19,10 @@ def remove_null_empty_from_dict(d):
                 new_d[k] = v
             elif isinstance(v, dict):
                 new_d[k] = remove_null_empty_from_dict(v)
-            elif isinstance(v, list) and len(v) > 0:
+            elif isinstance(v, list):
                 new_d[k] = remove_null_empty_from_dict(v)
+            elif k == "name":
+                new_d[k] = v
     elif isinstance(d, list):
         new_d = []
         for v in d:
@@ -45,7 +47,7 @@ def create_serializer(model):
     dict_meta = {
         "model": model,
         "depth": 3,
-        'exclude': ['vector_column_e1_set', 'vector_related_f10_set', 'vector_related_E40_set', 'vector_related_xml_note_set']
+        'exclude': ['vector_column_e1_set', 'vector_related_f10_set', 'vector_related_E40_set', 'vector_related_xml_note_set', 'vector_search_speedup_set']
     }
     if model.__name__ == "Xml_File":
         dict_meta["exclude"].append("file_content")
@@ -263,7 +265,7 @@ class F3ManifestationProductTypeSerializer(serializers.ModelSerializer):
     Custom serializer for F3ManifestationProductType
     """
 
-    triple_set_from_obj = TripleSerializerFromObj(many=True, read_only=True)
+    triple_set_from_obj = TripleSerializerFromObj(source="filtered_triples_from_obj", many=True, read_only=True)
     triple_set_from_subj = TripleSerializerFromSubj(many=True, read_only=True)
     has_children = serializers.SerializerMethodField(method_name="add_has_children")
     self_contenttype = serializers.SerializerMethodField()
