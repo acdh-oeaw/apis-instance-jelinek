@@ -52,7 +52,6 @@ def query_params_to_filter_dict(query_params):
 
 class F3ManifestationProductType(viewsets.ReadOnlyModelViewSet):
     serializer_class = F3ManifestationProductTypeSerializer
-    # filter_class = F3ManifestationProductTypeFilter
     queryset = F3_Manifestation_Product_Type.objects.all().prefetch_related('triple_set_from_obj', 'triple_set_from_subj')
     def get_queryset(self):
         qs = super().get_queryset()
@@ -69,8 +68,11 @@ class Notes(viewsets.ReadOnlyModelViewSet):
 
 class F31Performance(viewsets.ReadOnlyModelViewSet):
     serializer_class = F31PerformanceSerializer
-    filter_class = F31PerformanceFilter
     queryset = F31_Performance.objects.all().prefetch_related('triple_set_from_obj', 'triple_set_from_subj')
+    def get_queryset(self):
+        qs = super().get_queryset()
+        params = query_params_to_filter_dict(self.request.query_params)
+        return qs.filter(**params)
 
 class F1Work(viewsets.ReadOnlyModelViewSet):
     serializer_class = F1WorkSerializer
