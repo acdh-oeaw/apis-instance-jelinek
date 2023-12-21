@@ -240,6 +240,13 @@ class TreesManager:
                 }
 
                 if (
+                    xml_elem.tag.endswith("publisher")
+                    and path_node.path_node_parent.xml_elem.tag.endswith("rs")
+                    and path_node.path_node_parent.xml_elem.attrib.get("type", "") == "publisher"
+                    ):
+                    return None
+
+                if (
                     (
                         xml_elem.tag.endswith("publisher")
                         or xml_elem.tag.endswith("institution")
@@ -284,7 +291,7 @@ class TreesManager:
                     if attr_dict["name"] is not None:
                         attr_dict["name"] = attr_dict["name"].replace("&amp;", "&")
 
-                    return attr_dict
+                    return attr_dict 
 
                 else:
 
