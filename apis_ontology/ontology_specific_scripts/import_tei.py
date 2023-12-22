@@ -239,12 +239,12 @@ class TreesManager:
                     "date": None
                 }
 
-                if (
-                    xml_elem.tag.endswith("publisher")
-                    and path_node.path_node_parent.xml_elem.tag.endswith("rs")
-                    and path_node.path_node_parent.xml_elem.attrib.get("type", "") == "publisher"
-                    ):
-                    return None
+                # if (
+                #     xml_elem.tag.endswith("publisher")
+                #     and path_node.path_node_parent.xml_elem.tag.endswith("rs")
+                #     and path_node.path_node_parent.xml_elem.attrib.get("type", "") == "publisher"
+                #     ):
+                #     return None
 
                 if (
                     (
